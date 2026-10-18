@@ -1,0 +1,33 @@
+{
+  "name": "tpm-os",
+  "version": "0.2.0",
+  "description": "Senior technical PM operating system for Claude Code: requirements interviews, ADRs, QA, metrics, fix plans, releases, docs, roadmap, feedback triage, and GTM, recorded as Linear-ready docs.",
+  "author": {
+    "name": "Aman Sharma",
+    "url": "https://github.com/amansharma2910"
+  },
+  "homepage": "https://github.com/amansharma2910/tpm_s-kill_bot",
+  "repository": "https://github.com/amansharma2910/tpm_s-kill_bot",
+  "license": "MIT",
+  "keywords": ["product-management", "tpm", "planning", "adr", "roadmap", "qa"],
+  "skills": "./.claude/skills/",
+  "commands": ["./.claude/commands/", "./plugin/commands/setup.md"],
+  "agents": [
+    "./.claude/agents/repo-surveyor.md",
+    "./.claude/agents/impact-analyzer.md",
+    "./.claude/agents/doc-crawler.md",
+    "./.claude/agents/competitor-researcher.md"
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/install.sh\" --emit-router \"${CLAUDE_PROJECT_DIR:-.}\""
+          }
+        ]
+      }
+    ]
+  }
+}

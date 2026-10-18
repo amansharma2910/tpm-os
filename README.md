@@ -1,22 +1,52 @@
 # tpm_s-kill_bot: Senior Technical PM Operating System for Claude Code
 
-A one-command installable suite that makes Claude Code behave like a senior technical product manager in any repository: requirements discovery, architecture evaluation, QA definition, success metrics, fix planning, release management, documentation, roadmap tracking, feedback triage, and go-to-market strategy.
+An installable suite that makes Claude Code behave like a senior technical product manager in any repository: requirements discovery, architecture evaluation, QA definition, success metrics, fix planning, release management, documentation, roadmap tracking, feedback triage, and go-to-market strategy.
 
 The suite is a CLAUDE.md router, ten interactive skills, four research subagents, ten slash commands, and a docs skeleton whose state files carry Linear-ready YAML frontmatter. It advises and records; it never blocks: work shipped without a plan is flagged `unplanned: true` and surfaced in the roadmap instead of refused.
 
 ## Install
 
-From inside the target project:
+Three ways to install. They deliver the same suite; pick by whether you want the files in your repository.
+
+| Method | Files land in your repo | Updates | Best for |
+|---|---|---|---|
+| npx | Yes: `CLAUDE.md`, `.claude/`, `docs/` | Re-run the command | Teams that review and version the suite with the code |
+| Claude Code plugin | Only `docs/` (via `/tpm-os:setup`) | `/plugin update` | Individuals, or keeping config out of the repo |
+| curl or local clone | Yes, same as npx | Re-run the script | Environments without Node |
+
+### npx
+
+From inside the target project (requires Node 16+ and bash):
+
+```bash
+npx tpm_os
+```
+
+All installer options pass through, for example `npx tpm_os --dry-run` or `npx tpm_os --force /path/to/project`.
+
+### Claude Code plugin
+
+In a Claude Code session:
+
+```
+/plugin marketplace add amansharma2910/tpm_s-kill_bot
+/plugin install tpm-os@tpm-os
+```
+
+Then restart the session and run `/tpm-os:setup` once per repository to seed the `docs/` skeleton. The plugin delivers the router through a SessionStart hook, because plugins cannot ship a `CLAUDE.md`. Everything is namespaced: commands are `/tpm-os:interview`, `/tpm-os:fix`, and so on; skills and subagents carry the `tpm-os:` prefix.
+
+Scope matters. Installed at user scope (the default), the router is active in every repository you open, and its skills auto-trigger on requests like "build X" or "X is broken". To limit it to one repository, pick project scope in the `/plugin` install dialog, or from a shell inside that repository run `claude plugin install tpm-os@tpm-os --scope project`. Project scope also shares the plugin with collaborators through `.claude/settings.json`.
+
+The hook stays silent in any repository whose `CLAUDE.md` already contains the router (an npx or curl install), so the two methods never stack routers. They would still load the skills twice; use one method per repository.
+
+### curl or local clone
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm_s-kill_bot/main/install.sh | bash
-```
-
-Or from a local clone:
-
-```bash
 ./install.sh /path/to/your/project
 ```
+
+### Project name
 
 The project name is derived from the target directory's basename (spaces become hyphens; only letters, digits, dot, underscore, and hyphen survive; case is preserved) and applied everywhere the suite references it, including `docs/{project-name}/DOCUMENTATION.md`. Then restart your Claude Code session in the target: skills, agents, and commands load at session start.
 
@@ -29,6 +59,8 @@ The project name is derived from the target directory's basename (spaces become 
 | `--date YYYY-MM-DD` | Date stamped into installed docs (default: today; used by tests) |
 | `--force` | Replace differing config files, backing each up to `<path>.bak-<date>` first |
 | `--dry-run` | Render and verify, report what would change, write nothing |
+| `--docs-only` | Install only the `docs/` skeleton (what `/tpm-os:setup` runs) |
+| `--emit-router` | Print the router rendered for the target (what the plugin hook runs); prints nothing if the target's `CLAUDE.md` already holds it |
 | `--self-test` | Maintainer mode: diff the embedded templates against this clone |
 | `-h`, `--help` | Help |
 
@@ -48,7 +80,7 @@ Re-running the installer on an up-to-date project is a no-op (everything reports
 
 ## Uninstall
 
-The install report doubles as the manifest. From the target project:
+Plugin: `/plugin uninstall tpm-os@tpm-os`. npx, curl, or clone installs: the install report doubles as the manifest. From the target project:
 
 ```bash
 rm -rf CLAUDE.md .claude/skills .claude/agents .claude/commands
@@ -58,7 +90,7 @@ Keep or remove `docs/` as you see fit; it holds your project's plans, roadmap, a
 
 ## Smoke test
 
-After installing and restarting the session:
+After installing and restarting the session (plugin users: prefix commands with `tpm-os:`, for example `/tpm-os:interview`):
 
 1. Restart the Claude Code session in the target repository (skills, agents, and commands all load at session start).
 2. Request a small feature in plain words, for example "add a dark mode toggle". Expect: a one-line route announcement, then interview-mode's challenge step (restatement, right-problem question, simpler alternative, candidate non-goals), then a lettered MCQ batch of 3 to 5 questions ending with a free-text option.
@@ -69,7 +101,7 @@ After installing and restarting the session:
 
 ## Maintainers
 
-`install.sh` is the package: every installed file lives inside it as a quoted heredoc (delimiter `TPM_FILE`), with `{{PROJECT_NAME}}` and `{{DATE}}` substituted at render time. This repo's own `CLAUDE.md`, `.claude/`, and `docs/` are the live reference install of the same suite.
+`install.sh` is the package for all three install methods. npx runs it through `bin/cli.js`, a thin wrapper that passes arguments, working directory, and exit codes through. The plugin is this repository's root: `.claude-plugin/plugin.json` points at `.claude/skills/`, `.claude/commands/`, the four agent files, and `plugin/commands/setup.md`, and its SessionStart hook runs `install.sh --emit-router`. `.claude-plugin/marketplace.json` lists that one plugin with `source: "."`, so the repository is also its own marketplace. Every installed file lives inside it as a quoted heredoc (delimiter `TPM_FILE`), with `{{PROJECT_NAME}}` and `{{DATE}}` substituted at render time. This repo's own `CLAUDE.md`, `.claude/`, and `docs/` are the live reference install of the same suite.
 
 The working rule: any edit to `CLAUDE.md`, anything under `.claude/`, or a docs seed must be mirrored into the matching heredoc in `install.sh`, and the drift gate must pass before committing:
 
@@ -77,7 +109,7 @@ The working rule: any edit to `CLAUDE.md`, anything under `.claude/`, or a docs 
 ./install.sh --self-test
 ```
 
-The self-test renders with the pinned name and date, runs the nine embedded checks, verifies the file tree matches in both directions, and byte-compares the render against the live files. `CLAUDE.md` and `.claude/**` mismatches fail; docs seed mismatches warn (this repo's own roadmap and changelog may legitimately accumulate state); `docs/tpm_s-kill_bot/DOCUMENTATION.md` is excluded (targets receive a generic starter instead of this repo's self-describing doc).
+The self-test renders with the pinned name and date, runs the nine embedded checks, verifies the file tree matches in both directions, byte-compares the render against the live files, checks that `TPM_SUITE_VERSION`, `package.json`, and `.claude-plugin/plugin.json` carry the same version, and checks that the router the plugin injects stays under its 9500 character budget (Claude Code caps hook context at 10000). `CLAUDE.md` and `.claude/**` mismatches fail; docs seed mismatches warn (this repo's own roadmap and changelog may legitimately accumulate state); `docs/tpm_s-kill_bot/DOCUMENTATION.md` is excluded (targets receive a generic starter instead of this repo's self-describing doc).
 
 Optional pre-commit hook:
 
@@ -85,4 +117,11 @@ Optional pre-commit hook:
 printf '#!/bin/sh\nexec ./install.sh --self-test\n' > .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
 ```
 
-Constraints to preserve when editing: no embedded file may contain a line consisting of exactly `TPM_FILE`; every frontmatter `description` stays a double-quoted single line; no em dash characters anywhere; the script stays bash 3.2 compatible (no `sed -i`, no associative arrays, printf only).
+Releasing a new version:
+
+1. Bump the version in `install.sh` (`TPM_SUITE_VERSION`), `package.json`, and `.claude-plugin/plugin.json`. Plugin users only receive updates when this version changes.
+2. `./install.sh --self-test` and `claude plugin validate .` must pass.
+3. Commit, tag (`v<version>`), and push to `main`. The plugin marketplace reads straight from the repository.
+4. `npm publish` for the npx channel.
+
+Constraints to preserve when editing: no embedded file may contain a line consisting of exactly `TPM_FILE`; every frontmatter `description` stays a double-quoted single line; no em dash characters anywhere; documentation-mode stays name-agnostic (it defers to the router's ownership table, because the plugin ships skills unrendered); the script stays bash 3.2 compatible (no `sed -i`, no associative arrays, printf only).

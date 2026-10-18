@@ -10,6 +10,10 @@
 # Usage:
 #   ./install.sh [options] [target-dir]
 #   curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm_s-kill_bot/main/install.sh | bash -s -- [options] [target-dir]
+#   npx tpm_os [options] [target-dir]
+#
+# The same file also backs the tpm-os Claude Code plugin: its SessionStart
+# hook runs --emit-router and its /tpm-os:setup command runs --docs-only.
 #
 # Maintenance rules (see README.md, Maintainer section):
 #   1. Embedded files use quoted heredocs with the delimiter TPM_FILE.
@@ -24,7 +28,7 @@
 
 set -euo pipefail
 
-TPM_SUITE_VERSION="0.1.0"
+TPM_SUITE_VERSION="0.2.0"
 
 # Globals
 TARGET_ARG=""
@@ -36,6 +40,8 @@ STAMP_DATE=""
 FORCE=0
 DRY_RUN=0
 SELF_TEST=0
+DOCS_ONLY=0
+EMIT_ROUTER=0
 STAGE=""
 MANIFEST=""
 CHECKS_PASSED=0
@@ -68,6 +74,12 @@ Options:
                       replaced
   --dry-run           render and verify, report what would change, write
                       nothing
+  --docs-only         install only the docs/ skeleton (used by the plugin's
+                      /tpm-os:setup command)
+  --emit-router       print the rendered CLAUDE.md router to stdout for the
+                      target, or nothing if its CLAUDE.md already holds the
+                      router (used by the plugin's SessionStart hook); never
+                      fails
   --self-test         maintainer mode: render with the pinned name and date,
                       then diff against this clone's live files
   -h, --help          show this help
@@ -77,7 +89,8 @@ Exit codes:
   1  usage or verification failure
   2  conflicts reported and not forced
 
-Remote one-liner (after the repo is pushed):
+Remote:
+  npx tpm_os [options] [target-dir]
   curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm_s-kill_bot/main/install.sh | bash -s -- [options] [target-dir]
 TPM_USAGE
 }
@@ -98,6 +111,8 @@ parse_args() {
       --force) FORCE=1; shift ;;
       --dry-run) DRY_RUN=1; shift ;;
       --self-test) SELF_TEST=1; shift ;;
+      --docs-only) DOCS_ONLY=1; shift ;;
+      --emit-router) EMIT_ROUTER=1; shift ;;
       -h|--help) usage; exit 0 ;;
       -*) die "unknown option: $1 (see --help)" ;;
       *)
@@ -689,7 +704,7 @@ Dispatch the doc-crawler subagent scoped to the changed areas (changed files, a 
 
 ### Step 2: Project documentation
 
-Update `docs/{{PROJECT_NAME}}/DOCUMENTATION.md`:
+Update the project documentation file, at the `DOCUMENTATION.md` path that CLAUDE.md's file ownership table lists for documentation-mode:
 
 1. Project structure
 2. Third-party dependencies (name, version, purpose)
@@ -713,7 +728,7 @@ If you detect drift you cannot fix in this pass, list it explicitly at the top o
 
 ## Guardrails
 
-- Write only under docs/{{PROJECT_NAME}}/ and docs/features/.
+- Write only to the project documentation file named in CLAUDE.md's file ownership table, and under docs/features/.
 - When this mode runs as part of the auto-chain, trigger roadmap-mode next.
 TPM_FILE
 
@@ -1203,13 +1218,14 @@ TPM_WIRING
   if grep -rn '{project_name}' "$STAGE" > /dev/null 2>&1; then vfail "{project_name} placeholder leaked"; fi
   if [ "$VERIFY_FAILS" -eq "$pre" ]; then CHECKS_PASSED=$((CHECKS_PASSED + 1)); fi
 
-  # 9. Name agreement: router, documentation-mode, and the docs directory all
-  #    reference the same project name.
+  # 9. Name agreement: the router and the docs directory reference the same
+  #    project name, and documentation-mode defers to the router's ownership
+  #    table (it stays name-agnostic so the plugin can ship it unrendered).
   pre=$VERIFY_FAILS
   grep -q "docs/$PROJECT_NAME/DOCUMENTATION.md" "$STAGE/CLAUDE.md" \
     || vfail "CLAUDE.md ownership row does not reference docs/$PROJECT_NAME/"
-  grep -q "docs/$PROJECT_NAME/" "$STAGE/.claude/skills/documentation-mode/SKILL.md" \
-    || vfail "documentation-mode does not reference docs/$PROJECT_NAME/"
+  grep -q "file ownership table" "$STAGE/.claude/skills/documentation-mode/SKILL.md" \
+    || vfail "documentation-mode does not defer to the CLAUDE.md file ownership table"
   if [ ! -f "$STAGE/docs/$PROJECT_NAME/DOCUMENTATION.md" ]; then
     vfail "docs/$PROJECT_NAME/DOCUMENTATION.md was not staged"
   fi
@@ -1342,6 +1358,11 @@ report() {
   fi
 
   printf '\nVerification: %d/%d embedded checks passed against the rendered tree.\n' "$CHECKS_PASSED" "$CHECKS_TOTAL"
+  if [ "$DOCS_ONLY" -eq 1 ]; then
+    printf '\nDocs skeleton only: the tpm-os plugin supplies the router, skills,\n'
+    printf 'agents, and commands, so nothing else was installed.\n'
+    return 0
+  fi
   printf '\nRestart required: skills, agents, and commands load at session start.\n'
   printf 'Restart your Claude Code session in %s before first use.\n' "$TARGET"
   printf '\nSmoke test:\n'
@@ -1381,9 +1402,14 @@ self_test() {
   st_fails=0
   st_warns=0
 
-  # Tree symmetry, both directions.
+  # Tree symmetry, both directions. Extra live files under docs/ are
+  # project state this repo accumulates by using its own suite (plans, ADRs,
+  # fixes), so only extra config files fail.
   printf '%s' "$MANIFEST" | LC_ALL=C sort > "$STAGE/.manifest"
-  (cd "$SOURCE_DIR" && find CLAUDE.md .claude docs -type f) \
+  { (cd "$SOURCE_DIR" && find CLAUDE.md .claude -type f)
+    for rel in $MANIFEST; do
+      case "$rel" in docs/*) if [ -f "$SOURCE_DIR/$rel" ]; then printf '%s\n' "$rel"; fi ;; esac
+    done; } \
     | grep -v '\.DS_Store' | grep -v 'settings\.local\.json' \
     | LC_ALL=C sort > "$STAGE/.actual"
   extra_live="$(comm -13 "$STAGE/.manifest" "$STAGE/.actual")"
@@ -1413,6 +1439,31 @@ self_test() {
     esac
   done
 
+  # Version agreement: plugin caches are keyed by version, so a bump that
+  # misses one manifest means plugin users never receive the update.
+  for vf in package.json .claude-plugin/plugin.json; do
+    if [ ! -f "$SOURCE_DIR/$vf" ]; then
+      printf 'self-test: FAIL: %s missing\n' "$vf" >&2
+      st_fails=$((st_fails + 1))
+      continue
+    fi
+    v="$(grep '"version"' "$SOURCE_DIR/$vf" | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')"
+    if [ "$v" != "$TPM_SUITE_VERSION" ]; then
+      printf 'self-test: FAIL: %s version %s does not match TPM_SUITE_VERSION %s\n' "$vf" "$v" "$TPM_SUITE_VERSION" >&2
+      st_fails=$((st_fails + 1))
+    fi
+  done
+
+  # Router size: the plugin injects preamble plus router as SessionStart
+  # context, which Claude Code caps at 10000 characters per hook output.
+  router_chars="$( { emit_preamble; cat "$STAGE/CLAUDE.md"; } | wc -m | tr -d ' ')"
+  if [ "$router_chars" -gt 9500 ]; then
+    printf 'self-test: FAIL: injected router is %s characters (budget 9500, hard cap 10000)\n' "$router_chars" >&2
+    st_fails=$((st_fails + 1))
+  else
+    note "self-test: injected router is $router_chars characters (budget 9500)"
+  fi
+
   if [ "$st_fails" -gt 0 ]; then
     printf 'self-test summary: FAIL (%d failure(s), %d warning(s))\n' "$st_fails" "$st_warns" >&2
     exit 1
@@ -1420,8 +1471,47 @@ self_test() {
   printf 'self-test summary: PASS (%d warning(s))\n' "$st_warns"
 }
 
+# Plugin SessionStart hook: print the router rendered for the target so
+# Claude Code adds it to session context (SessionStart stdout becomes
+# context). Prints nothing when the target's own CLAUDE.md already carries
+# the router (an install.sh install), to avoid a duplicate routing table.
+# Must never fail a session start, so every error path exits 0 silently.
+emit_router() {
+  if [ -z "$TARGET_ARG" ]; then TARGET_ARG="${CLAUDE_PROJECT_DIR:-.}"; fi
+  [ -d "$TARGET_ARG" ] || exit 0
+  TARGET="$(cd "$TARGET_ARG" && pwd)" || exit 0
+  if [ -f "$TARGET/CLAUDE.md" ] && grep -q 'Senior Technical PM Operating System' "$TARGET/CLAUDE.md"; then
+    exit 0
+  fi
+  PROJECT_NAME="$(sanitize_name "$(basename "$TARGET")")"
+  if [ -z "$PROJECT_NAME" ]; then PROJECT_NAME="project"; fi
+  STAMP_DATE="$(date +%Y-%m-%d)"
+  STAGE="$(mktemp -d)" || exit 0
+  render_claude_md
+  emit_preamble
+  cat "$STAGE/CLAUDE.md"
+  exit 0
+}
+
+emit_preamble() {
+  cat <<'TPM_PREAMBLE'
+The tpm-os plugin is active in this session. The router below governs this
+repository exactly as if it were its CLAUDE.md. Plugin components are
+namespaced: skills as tpm-os:<skill> (for example tpm-os:interview-mode),
+subagents as tpm-os:<agent> (for example tpm-os:impact-analyzer), and slash
+commands as /tpm-os:<command> (for example /tpm-os:interview). Read every bare
+mode, agent, or command name below as its tpm-os: form. If docs/roadmap.md
+does not exist yet, the docs skeleton is not seeded: before the first mode
+writes state, recommend /tpm-os:setup once.
+
+TPM_PREAMBLE
+}
+
 main() {
   parse_args "$@"
+  if [ "$EMIT_ROUTER" -eq 1 ]; then
+    emit_router
+  fi
   if [ "$SELF_TEST" -eq 1 ]; then
     self_test
     exit 0
@@ -1430,6 +1520,14 @@ main() {
   STAGE="$(mktemp -d)"
   render_all
   verify_stage
+  if [ "$DOCS_ONLY" -eq 1 ]; then
+    docs_manifest=""
+    for rel in $MANIFEST; do
+      case "$rel" in docs/*) docs_manifest="$docs_manifest$rel
+" ;; esac
+    done
+    MANIFEST="$docs_manifest"
+  fi
   reconcile
   report
   if [ "$N_CONFLICTS" -gt 0 ]; then

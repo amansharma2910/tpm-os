@@ -15,7 +15,7 @@ Dispatch the doc-crawler subagent scoped to the changed areas (changed files, a 
 
 ### Step 2: Project documentation
 
-Update `docs/tpm_s-kill_bot/DOCUMENTATION.md`:
+Update the project documentation file, at the `DOCUMENTATION.md` path that CLAUDE.md's file ownership table lists for documentation-mode:
 
 1. Project structure
 2. Third-party dependencies (name, version, purpose)
@@ -39,5 +39,5 @@ If you detect drift you cannot fix in this pass, list it explicitly at the top o
 
 ## Guardrails
 
-- Write only under docs/tpm_s-kill_bot/ and docs/features/.
+- Write only to the project documentation file named in CLAUDE.md's file ownership table, and under docs/features/.
 - When this mode runs as part of the auto-chain, trigger roadmap-mode next.

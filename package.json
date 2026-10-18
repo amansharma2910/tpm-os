@@ -1,0 +1,33 @@
+{
+  "name": "tpm_os",
+  "version": "0.2.0",
+  "description": "One-command installer for the TPM Operating System: a senior technical PM operating system for Claude Code.",
+  "bin": {
+    "tpm_os": "bin/cli.js"
+  },
+  "files": [
+    "bin/cli.js",
+    "install.sh"
+  ],
+  "scripts": {
+    "test": "bash install.sh --self-test"
+  },
+  "keywords": [
+    "claude-code",
+    "claude",
+    "product-management",
+    "tpm",
+    "planning"
+  ],
+  "author": "Aman Sharma",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/amansharma2910/tpm_s-kill_bot.git"
+  },
+  "homepage": "https://github.com/amansharma2910/tpm_s-kill_bot#readme",
+  "bugs": "https://github.com/amansharma2910/tpm_s-kill_bot/issues",
+  "engines": {
+    "node": ">=16"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "tpm-os",
+  "description": "The TPM Operating System for Claude Code, published from its source repository.",
+  "owner": {
+    "name": "Aman Sharma",
+    "url": "https://github.com/amansharma2910"
+  },
+  "plugins": [
+    {
+      "name": "tpm-os",
+      "source": ".",
+      "description": "Senior technical PM operating system for Claude Code: requirements interviews, ADRs, QA, metrics, fix plans, releases, docs, roadmap, feedback triage, and GTM.",
+      "category": "productivity"
+    }
+  ]
+}

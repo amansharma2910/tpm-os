@@ -6,8 +6,8 @@ Plan: docs/plans/implementation_plan_npx-and-plugin-distribution_1.md
 
 Adds two install channels to the existing `install.sh`:
 
-- `npx tpm_os [options] [target-dir]`: identical to running `install.sh`, files land in the repository.
-- The `tpm-os` Claude Code plugin: `/plugin marketplace add amansharma2910/tpm_s-kill_bot`, `/plugin install tpm-os@tpm-os`, restart, then `/tpm-os:setup` once per repository. Nothing but `docs/` lands in the repository; the router arrives through a SessionStart hook.
+- `npx tpm-os [options] [target-dir]`: identical to running `install.sh`, files land in the repository.
+- The `tpm-os` Claude Code plugin: `/plugin marketplace add amansharma2910/tpm-os`, `/plugin install tpm-os@tpm-os`, restart, then `/tpm-os:setup` once per repository. Nothing but `docs/` lands in the repository; the router arrives through a SessionStart hook.
 
 ## Implementation detail
 
@@ -30,7 +30,7 @@ Adds two install channels to the existing `install.sh`:
 
 - Exit codes through npx: 0 success, 1 usage or verification failure, 2 conflicts not forced. Missing bash exits 1 with a message.
 - Versions: `TPM_SUITE_VERSION`, `package.json`, and `.claude-plugin/plugin.json` must match; the self-test fails otherwise. Plugin users only receive updates when the version changes.
-- Router budget: preamble plus router must stay at or under 9500 characters (Claude Code's hook context cap is 10000). Currently 7802.
+- Router budget: preamble plus router must stay at or under 9500 characters (Claude Code's hook context cap is 10000). Currently 7786.
 - Namespacing under the plugin: `/tpm-os:<command>`, `tpm-os:<skill>`, `tpm-os:<agent>`.
 
 ## Pointers for developers

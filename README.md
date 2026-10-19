@@ -1,4 +1,4 @@
-# tpm_s-kill_bot: Senior Technical PM Operating System for Claude Code
+# tpm-os: Senior Technical PM Operating System for Claude Code
 
 An installable suite that makes Claude Code behave like a senior technical product manager in any repository: requirements discovery, architecture evaluation, QA definition, success metrics, fix planning, release management, documentation, roadmap tracking, feedback triage, and go-to-market strategy.
 
@@ -19,21 +19,23 @@ Three ways to install. They deliver the same suite; pick by whether you want the
 From inside the target project (requires Node 16+ and bash):
 
 ```bash
-npx tpm_os
+npx tpm-os@latest
 ```
 
-All installer options pass through, for example `npx tpm_os --dry-run` or `npx tpm_os --force /path/to/project`.
+All installer options pass through, for example `npx tpm-os --dry-run` or `npx tpm-os --force /path/to/project`.
+
+npx caches the version it resolved the first time, so pass `@latest` when you re-run it to upgrade. This package was briefly published as `tpm_os` before the rename; that name has been removed from the registry, so use `tpm-os`.
 
 ### Claude Code plugin
 
 In a Claude Code session:
 
 ```
-/plugin marketplace add amansharma2910/tpm_s-kill_bot
+/plugin marketplace add amansharma2910/tpm-os
 /plugin install tpm-os@tpm-os
 ```
 
-Then restart the session and run `/tpm-os:setup` once per repository to seed the `docs/` skeleton. The plugin delivers the router through a SessionStart hook, because plugins cannot ship a `CLAUDE.md`. Everything is namespaced: commands are `/tpm-os:interview`, `/tpm-os:fix`, and so on; skills and subagents carry the `tpm-os:` prefix.
+`tpm-os@tpm-os` reads as plugin `tpm-os` from marketplace `tpm-os`; the repository is its own marketplace. Then restart the session and run `/tpm-os:setup` once per repository to seed the `docs/` skeleton. The plugin delivers the router through a SessionStart hook, because plugins cannot ship a `CLAUDE.md`. Everything is namespaced: commands are `/tpm-os:interview`, `/tpm-os:fix`, and so on; skills and subagents carry the `tpm-os:` prefix.
 
 Scope matters. Installed at user scope (the default), the router is active in every repository you open, and its skills auto-trigger on requests like "build X" or "X is broken". To limit it to one repository, pick project scope in the `/plugin` install dialog, or from a shell inside that repository run `claude plugin install tpm-os@tpm-os --scope project`. Project scope also shares the plugin with collaborators through `.claude/settings.json`.
 
@@ -42,7 +44,7 @@ The hook stays silent in any repository whose `CLAUDE.md` already contains the r
 ### curl or local clone
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm_s-kill_bot/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm-os/main/install.sh | bash
 ./install.sh /path/to/your/project
 ```
 
@@ -109,7 +111,7 @@ The working rule: any edit to `CLAUDE.md`, anything under `.claude/`, or a docs 
 ./install.sh --self-test
 ```
 
-The self-test renders with the pinned name and date, runs the nine embedded checks, verifies the file tree matches in both directions, byte-compares the render against the live files, checks that `TPM_SUITE_VERSION`, `package.json`, and `.claude-plugin/plugin.json` carry the same version, and checks that the router the plugin injects stays under its 9500 character budget (Claude Code caps hook context at 10000). `CLAUDE.md` and `.claude/**` mismatches fail; docs seed mismatches warn (this repo's own roadmap and changelog may legitimately accumulate state); `docs/tpm_s-kill_bot/DOCUMENTATION.md` is excluded (targets receive a generic starter instead of this repo's self-describing doc).
+The self-test renders with the pinned name and date, runs the nine embedded checks, verifies the file tree matches in both directions, byte-compares the render against the live files, checks that `TPM_SUITE_VERSION`, `package.json`, and `.claude-plugin/plugin.json` carry the same version, and checks that the router the plugin injects stays under its 9500 character budget (Claude Code caps hook context at 10000). `CLAUDE.md` and `.claude/**` mismatches fail; docs seed mismatches warn (this repo's own roadmap and changelog may legitimately accumulate state); `docs/tpm-os/DOCUMENTATION.md` is excluded (targets receive a generic starter instead of this repo's self-describing doc).
 
 Optional pre-commit hook:
 

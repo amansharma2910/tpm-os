@@ -1,9 +1,9 @@
 {
-  "name": "tpm_os",
-  "version": "0.2.0",
+  "name": "tpm-os",
+  "version": "0.3.0",
   "description": "One-command installer for the TPM Operating System: a senior technical PM operating system for Claude Code.",
   "bin": {
-    "tpm_os": "bin/cli.js"
+    "tpm-os": "bin/cli.js"
   },
   "files": [
     "bin/cli.js",
@@ -23,10 +23,10 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/amansharma2910/tpm_s-kill_bot.git"
+    "url": "git+https://github.com/amansharma2910/tpm-os.git"
   },
-  "homepage": "https://github.com/amansharma2910/tpm_s-kill_bot#readme",
-  "bugs": "https://github.com/amansharma2910/tpm_s-kill_bot/issues",
+  "homepage": "https://github.com/amansharma2910/tpm-os#readme",
+  "bugs": "https://github.com/amansharma2910/tpm-os/issues",
   "engines": {
     "node": ">=16"
   }

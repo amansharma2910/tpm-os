@@ -9,8 +9,8 @@
 #
 # Usage:
 #   ./install.sh [options] [target-dir]
-#   curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm_s-kill_bot/main/install.sh | bash -s -- [options] [target-dir]
-#   npx tpm_os [options] [target-dir]
+#   curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm-os/main/install.sh | bash -s -- [options] [target-dir]
+#   npx tpm-os [options] [target-dir]
 #
 # The same file also backs the tpm-os Claude Code plugin: its SessionStart
 # hook runs --emit-router and its /tpm-os:setup command runs --docs-only.
@@ -28,7 +28,7 @@
 
 set -euo pipefail
 
-TPM_SUITE_VERSION="0.2.0"
+TPM_SUITE_VERSION="0.3.0"
 
 # Globals
 TARGET_ARG=""
@@ -90,8 +90,8 @@ Exit codes:
   2  conflicts reported and not forced
 
 Remote:
-  npx tpm_os [options] [target-dir]
-  curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm_s-kill_bot/main/install.sh | bash -s -- [options] [target-dir]
+  npx tpm-os [options] [target-dir]
+  curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm-os/main/install.sh | bash -s -- [options] [target-dir]
 TPM_USAGE
 }
 
@@ -1376,7 +1376,7 @@ report() {
 # against this clone's live files. FAIL tier: CLAUDE.md and .claude/** must
 # be byte-identical. WARN tier: docs seeds (live repo state may legitimately
 # diverge once this repo is used as a working install). Excluded entirely:
-# docs/tpm_s-kill_bot/DOCUMENTATION.md (self-describing here; targets get
+# docs/tpm-os/DOCUMENTATION.md (self-describing here; targets get
 # the generic starter instead).
 self_test() {
   if [ ! -f "$0" ]; then
@@ -1387,7 +1387,7 @@ self_test() {
     die "self-test: $SOURCE_DIR does not look like the suite repo (CLAUDE.md missing)"
   fi
 
-  PROJECT_NAME="tpm_s-kill_bot"
+  PROJECT_NAME="tpm-os"
   STAMP_DATE="$(grep '^created:' "$SOURCE_DIR/docs/roadmap.md" | awk '{print $2}')"
   if [ -z "$STAMP_DATE" ]; then
     die "self-test: could not read the pinned date from docs/roadmap.md"
@@ -1425,7 +1425,7 @@ self_test() {
 
   # Byte comparison in two tiers.
   for rel in $MANIFEST; do
-    if [ "$rel" = "docs/tpm_s-kill_bot/DOCUMENTATION.md" ]; then continue; fi
+    if [ "$rel" = "docs/$PROJECT_NAME/DOCUMENTATION.md" ]; then continue; fi
     if [ ! -f "$SOURCE_DIR/$rel" ]; then continue; fi
     if cmp -s "$STAGE/$rel" "$SOURCE_DIR/$rel"; then continue; fi
     case "$rel" in

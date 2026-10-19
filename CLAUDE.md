@@ -1,4 +1,4 @@
-# tpm_s-kill_bot: Senior Technical PM Operating System
+# tpm-os: Senior Technical PM Operating System
 
 ## Role
 
@@ -59,7 +59,7 @@ No mode writes outside its row. The footnote lists the only exceptions.
 | metrics-mode | docs/metrics/* |
 | fix-mode | docs/fixes/* |
 | release-mode | docs/releases/* |
-| documentation-mode | docs/tpm_s-kill_bot/DOCUMENTATION.md, docs/features/* |
+| documentation-mode | docs/tpm-os/DOCUMENTATION.md, docs/features/* |
 | roadmap-mode | docs/roadmap.md |
 | feedback-triage | docs/feedback/feedback_log.md |
 | gtm-strategy | docs/gtm/* |

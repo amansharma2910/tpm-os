@@ -12,7 +12,7 @@ const result = spawnSync("bash", [script, ...process.argv.slice(2)], { stdio: "i
 
 if (result.error) {
   const reason = result.error.code === "ENOENT" ? "bash was not found on PATH" : result.error.message;
-  console.error(`tpm_os: ${reason}. The installer needs bash (macOS, Linux, WSL, or Git Bash).`);
+  console.error(`tpm-os: ${reason}. The installer needs bash (macOS, Linux, WSL, or Git Bash).`);
   process.exit(1);
 }
 process.exit(result.status === null ? 1 : result.status);

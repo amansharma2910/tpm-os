@@ -1,4 +1,4 @@
-# tpm_s-kill_bot Documentation
+# tpm-os Documentation
 
 ## Project Structure
 
@@ -11,13 +11,13 @@
 - `.claude-plugin/plugin.json`: makes the repository root the `tpm-os` Claude Code plugin. Points at `.claude/skills/`, `.claude/commands/`, the four agent files, and `plugin/commands/setup.md`, and declares the SessionStart hook that runs `install.sh --emit-router`.
 - `.claude-plugin/marketplace.json`: makes the repository its own plugin marketplace (`tpm-os`, one plugin, `source: "."`).
 - `plugin/commands/setup.md`: plugin-only `/tpm-os:setup` command; runs `install.sh --docs-only` to seed `docs/`. Kept outside `.claude/` so install.sh users never receive it.
-- `bin/cli.js` and `package.json`: the `tpm_os` npm package. `npx tpm_os` spawns `bash install.sh` with the caller's arguments, working directory, and stdio, and returns its exit code.
+- `bin/cli.js` and `package.json`: the `tpm-os` npm package. `npx tpm-os` spawns `bash install.sh` with the caller's arguments, working directory, and stdio, and returns its exit code.
 - `LICENSE`: MIT.
 - `README.md`: install instructions, conflict policy, smoke test, and maintainer rules.
 
 ## Third-Party Dependencies
 
-None at runtime. The suite is a Claude Code configuration (markdown with YAML frontmatter) plus a bash 3.2 installer. Distribution channels: npm (`tpm_os`, needs Node 16+ and bash for `npx`) and the Claude Code plugin system (`tpm-os`).
+None at runtime. The suite is a Claude Code configuration (markdown with YAML frontmatter) plus a bash 3.2 installer. Distribution channels: npm (`tpm-os`, needs Node 16+ and bash for `npx`) and the Claude Code plugin system (`tpm-os`).
 
 ## Cross-Module Dependency Map
 
@@ -32,7 +32,7 @@ None at runtime. The suite is a Claude Code configuration (markdown with YAML fr
 1. Open this repository in Claude Code.
 2. Restart the session after any change to `.claude/agents/` or `.claude/commands/` (skills hot-reload; agents and commands load at session start).
 3. Make requests in plain language and CLAUDE.md routes them, or invoke a mode directly with its slash command.
-4. To install this suite into another repository: `npx tpm_os`, `./install.sh /path/to/project`, the curl one-liner, or the `tpm-os` plugin (`/plugin marketplace add amansharma2910/tpm_s-kill_bot`, `/plugin install tpm-os@tpm-os`, then `/tpm-os:setup`). See README.md for trade-offs.
+4. To install this suite into another repository: `npx tpm-os`, `./install.sh /path/to/project`, the curl one-liner, or the `tpm-os` plugin (`/plugin marketplace add amansharma2910/tpm-os`, `/plugin install tpm-os@tpm-os`, then `/tpm-os:setup`). See README.md for trade-offs.
 5. To test the plugin locally without installing it: `claude --plugin-dir /path/to/this/repo` from a scratch repository (not this one, whose own `.claude/` would load every component twice).
 
 ## Architectural Overview

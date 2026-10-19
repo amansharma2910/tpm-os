@@ -17,22 +17,22 @@ The suite installs only through `install.sh` (curl or a local clone). Users who 
 
 ## 2. Business Objective and End Goal
 
-Lower install friction to one command in each ecosystem without forking the content. End state: `npx tpm_os` and `/plugin install tpm-os@tpm-os` both work, and every installed file still comes from one source that the existing drift gate covers.
+Lower install friction to one command in each ecosystem without forking the content. End state: `npx tpm-os` and `/plugin install tpm-os@tpm-os` both work, and every installed file still comes from one source that the existing drift gate covers.
 
 ## 3. Users and UX
 
-- npx users: run `npx tpm_os` in a project; identical behavior, options, and exit codes to `install.sh`.
-- Plugin users: `/plugin marketplace add amansharma2910/tpm_s-kill_bot`, `/plugin install tpm-os@tpm-os`, restart, `/tpm-os:setup` once per repository. Commands, skills, and agents are namespaced `tpm-os:`.
+- npx users: run `npx tpm-os` in a project; identical behavior, options, and exit codes to `install.sh`.
+- Plugin users: `/plugin marketplace add amansharma2910/tpm-os`, `/plugin install tpm-os@tpm-os`, restart, `/tpm-os:setup` once per repository. Commands, skills, and agents are namespaced `tpm-os:`.
 
 ## 4. Functional Requirements
 
 Must:
-- M1. `npx tpm_os [options] [target-dir]` runs the bundled `install.sh` with arguments, working directory, stdio, and exit codes (0, 1, 2) passed through.
+- M1. `npx tpm-os [options] [target-dir]` runs the bundled `install.sh` with arguments, working directory, stdio, and exit codes (0, 1, 2) passed through.
 - M2. The repository root is a valid plugin named `tpm-os` and its own marketplace named `tpm-os` (`source: "."`), with no second copy of any skill, agent, or command.
 - M3. A SessionStart hook injects the router rendered with the current repository's name, in every repository where the plugin is enabled (decision 3B: always on).
 - M4. The hook prints nothing when the repository's own `CLAUDE.md` already contains the router, so npx and plugin installs never stack two routing tables.
 - M5. `/tpm-os:setup` seeds only the `docs/` skeleton via `install.sh --docs-only`, never overwriting existing docs.
-- M6. documentation-mode no longer hardcodes `docs/tpm_s-kill_bot/`; it defers to the router's file ownership table.
+- M6. documentation-mode no longer hardcodes `docs/tpm-os/`; it defers to the router's file ownership table.
 - M7. Version `0.2.0` in `install.sh`, `package.json`, and `.claude-plugin/plugin.json`; the self-test fails if they disagree.
 - M8. The self-test's file tree check ignores extra live files under `docs/` (plans, ADRs, fixes this repo records by using its own suite) and still fails on extra config files or missing seeds. Today the gate fails as soon as this plan exists.
 
@@ -65,10 +65,10 @@ Verified in the scratchpad prototype on 2026-10-18:
 2. In a fresh repository with `--plugin-dir`, the session sees `# plugin-target: Senior Technical PM Operating System`, documentation-mode resolves to `docs/plugin-target/DOCUMENTATION.md`, and the prompt "add a dark mode toggle" ran interview-mode, wrote a plan, and registered it on the roadmap.
 3. `/tpm-os:setup` created exactly the 11 `docs/` files and nothing else.
 4. `--emit-router` printed 0 bytes for a repository installed by `install.sh`, and exited 0 for a nonexistent directory.
-5. `npx --package=tpm_os-0.2.0.tgz tpm_os` installed into a directory with a space in its name (derived name `npx-target`); re-run exit 0, conflict exit 2, unknown flag exit 1.
+5. `npx --package=tpm-os-0.2.0.tgz tpm-os` installed into a directory with a space in its name (derived name `npx-target`); re-run exit 0, conflict exit 2, unknown flag exit 1.
 6. `./install.sh --self-test` passes, reporting the router at 7802 of 9500 characters, with this plan present under `docs/plans/`. Negative tests: a stray `.claude/commands/stray.md` fails it, and a missing docs seed fails it.
 
-Still to verify after merge: the marketplace install from GitHub (`/plugin marketplace add amansharma2910/tpm_s-kill_bot`), which exercises the plugin cache copy that local tests cannot, and `npx tpm_os` from the public registry.
+Still to verify after merge: the marketplace install from GitHub (`/plugin marketplace add amansharma2910/tpm-os`), which exercises the plugin cache copy that local tests cannot, and `npx tpm-os` from the public registry.
 
 ## 8. Failure Handling and Fallbacks
 
@@ -95,7 +95,7 @@ Recorded in docs/adr/0001-plugin-router-delivery.md (accepted). The repository r
 | # | Question | Decision |
 |---|---|---|
 | 1 | Plugin name | `tpm-os` |
-| 2 | npm package name | `tpm_os` (available on the registry as of 2026-10-18) |
+| 2 | npm package name | `tpm-os` (available on the registry as of 2026-10-18) |
 | 3 | Cross-repo behavior | B: always on wherever the plugin is enabled |
 | 4 | Publishing | B: Claude runs `npm publish` after the user runs `npm login` |
 | 5 | Version | A: `0.2.0` everywhere, enforced by the self-test |
@@ -114,8 +114,8 @@ Recorded in docs/adr/0001-plugin-router-delivery.md (accepted). The repository r
     "name": "Aman Sharma",
     "url": "https://github.com/amansharma2910"
   },
-  "homepage": "https://github.com/amansharma2910/tpm_s-kill_bot",
-  "repository": "https://github.com/amansharma2910/tpm_s-kill_bot",
+  "homepage": "https://github.com/amansharma2910/tpm-os",
+  "repository": "https://github.com/amansharma2910/tpm-os",
   "license": "MIT",
   "keywords": ["product-management", "tpm", "planning", "adr", "roadmap", "qa"],
   "skills": "./.claude/skills/",
@@ -195,7 +195,7 @@ const result = spawnSync("bash", [script, ...process.argv.slice(2)], { stdio: "i
 
 if (result.error) {
   const reason = result.error.code === "ENOENT" ? "bash was not found on PATH" : result.error.message;
-  console.error(`tpm_os: ${reason}. The installer needs bash (macOS, Linux, WSL, or Git Bash).`);
+  console.error(`tpm-os: ${reason}. The installer needs bash (macOS, Linux, WSL, or Git Bash).`);
   process.exit(1);
 }
 process.exit(result.status === null ? 1 : result.status);
@@ -205,11 +205,11 @@ process.exit(result.status === null ? 1 : result.status);
 
 ```json
 {
-  "name": "tpm_os",
+  "name": "tpm-os",
   "version": "0.2.0",
   "description": "One-command installer for the TPM Operating System: a senior technical PM operating system for Claude Code.",
   "bin": {
-    "tpm_os": "bin/cli.js"
+    "tpm-os": "bin/cli.js"
   },
   "files": [
     "bin/cli.js",
@@ -229,10 +229,10 @@ process.exit(result.status === null ? 1 : result.status);
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/amansharma2910/tpm_s-kill_bot.git"
+    "url": "git+https://github.com/amansharma2910/tpm-os.git"
   },
-  "homepage": "https://github.com/amansharma2910/tpm_s-kill_bot#readme",
-  "bugs": "https://github.com/amansharma2910/tpm_s-kill_bot/issues",
+  "homepage": "https://github.com/amansharma2910/tpm-os#readme",
+  "bugs": "https://github.com/amansharma2910/tpm-os/issues",
   "engines": {
     "node": ">=16"
   }
@@ -247,8 +247,8 @@ process.exit(result.status === null ? 1 : result.status);
 @@ -10,7 +10,11 @@
  # Usage:
  #   ./install.sh [options] [target-dir]
- #   curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm_s-kill_bot/main/install.sh | bash -s -- [options] [target-dir]
-+#   npx tpm_os [options] [target-dir]
+ #   curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm-os/main/install.sh | bash -s -- [options] [target-dir]
++#   npx tpm-os [options] [target-dir]
  #
 +# The same file also backs the tpm-os Claude Code plugin: its SessionStart
 +# hook runs --emit-router and its /tpm-os:setup command runs --docs-only.
@@ -293,8 +293,8 @@ process.exit(result.status === null ? 1 : result.status);
  
 -Remote one-liner (after the repo is pushed):
 +Remote:
-+  npx tpm_os [options] [target-dir]
-   curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm_s-kill_bot/main/install.sh | bash -s -- [options] [target-dir]
++  npx tpm-os [options] [target-dir]
+   curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm-os/main/install.sh | bash -s -- [options] [target-dir]
  TPM_USAGE
  }
 @@ -98,6 +111,8 @@
@@ -475,7 +475,7 @@ process.exit(result.status === null ? 1 : result.status);
  
  ### Step 2: Project documentation
  
--Update `docs/tpm_s-kill_bot/DOCUMENTATION.md`:
+-Update `docs/tpm-os/DOCUMENTATION.md`:
 +Update the project documentation file, at the `DOCUMENTATION.md` path that CLAUDE.md's file ownership table lists for documentation-mode:
  
  1. Project structure
@@ -484,13 +484,13 @@ process.exit(result.status === null ? 1 : result.status);
  
  ## Guardrails
  
--- Write only under docs/tpm_s-kill_bot/ and docs/features/.
+-- Write only under docs/tpm-os/ and docs/features/.
 +- Write only to the project documentation file named in CLAUDE.md's file ownership table, and under docs/features/.
  - When this mode runs as part of the auto-chain, trigger roadmap-mode next.
 --- a/README.md
 +++ b/README.md
 @@ -1,23 +1,53 @@
- # tpm_s-kill_bot: Senior Technical PM Operating System for Claude Code
+ # tpm-os: Senior Technical PM Operating System for Claude Code
  
 -A one-command installable suite that makes Claude Code behave like a senior technical product manager in any repository: requirements discovery, architecture evaluation, QA definition, success metrics, fix planning, release management, documentation, roadmap tracking, feedback triage, and go-to-market strategy.
 +An installable suite that makes Claude Code behave like a senior technical product manager in any repository: requirements discovery, architecture evaluation, QA definition, success metrics, fix planning, release management, documentation, roadmap tracking, feedback triage, and go-to-market strategy.
@@ -513,19 +513,19 @@ process.exit(result.status === null ? 1 : result.status);
 +From inside the target project (requires Node 16+ and bash):
 +
  ```bash
--curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm_s-kill_bot/main/install.sh | bash
-+npx tpm_os
+-curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm-os/main/install.sh | bash
++npx tpm-os
  ```
  
 -Or from a local clone:
-+All installer options pass through, for example `npx tpm_os --dry-run` or `npx tpm_os --force /path/to/project`.
++All installer options pass through, for example `npx tpm-os --dry-run` or `npx tpm-os --force /path/to/project`.
  
 +### Claude Code plugin
 +
 +In a Claude Code session:
 +
 +```
-+/plugin marketplace add amansharma2910/tpm_s-kill_bot
++/plugin marketplace add amansharma2910/tpm-os
 +/plugin install tpm-os@tpm-os
 +```
 +
@@ -538,7 +538,7 @@ process.exit(result.status === null ? 1 : result.status);
 +### curl or local clone
 +
  ```bash
-+curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm_s-kill_bot/main/install.sh | bash
++curl -fsSL https://raw.githubusercontent.com/amansharma2910/tpm-os/main/install.sh | bash
  ./install.sh /path/to/your/project
  ```
  
@@ -587,8 +587,8 @@ process.exit(result.status === null ? 1 : result.status);
  ./install.sh --self-test
  ```
  
--The self-test renders with the pinned name and date, runs the nine embedded checks, verifies the file tree matches in both directions, and byte-compares the render against the live files. `CLAUDE.md` and `.claude/**` mismatches fail; docs seed mismatches warn (this repo's own roadmap and changelog may legitimately accumulate state); `docs/tpm_s-kill_bot/DOCUMENTATION.md` is excluded (targets receive a generic starter instead of this repo's self-describing doc).
-+The self-test renders with the pinned name and date, runs the nine embedded checks, verifies the file tree matches in both directions, byte-compares the render against the live files, checks that `TPM_SUITE_VERSION`, `package.json`, and `.claude-plugin/plugin.json` carry the same version, and checks that the router the plugin injects stays under its 9500 character budget (Claude Code caps hook context at 10000). `CLAUDE.md` and `.claude/**` mismatches fail; docs seed mismatches warn (this repo's own roadmap and changelog may legitimately accumulate state); `docs/tpm_s-kill_bot/DOCUMENTATION.md` is excluded (targets receive a generic starter instead of this repo's self-describing doc).
+-The self-test renders with the pinned name and date, runs the nine embedded checks, verifies the file tree matches in both directions, and byte-compares the render against the live files. `CLAUDE.md` and `.claude/**` mismatches fail; docs seed mismatches warn (this repo's own roadmap and changelog may legitimately accumulate state); `docs/tpm-os/DOCUMENTATION.md` is excluded (targets receive a generic starter instead of this repo's self-describing doc).
++The self-test renders with the pinned name and date, runs the nine embedded checks, verifies the file tree matches in both directions, byte-compares the render against the live files, checks that `TPM_SUITE_VERSION`, `package.json`, and `.claude-plugin/plugin.json` carry the same version, and checks that the router the plugin injects stays under its 9500 character budget (Claude Code caps hook context at 10000). `CLAUDE.md` and `.claude/**` mismatches fail; docs seed mismatches warn (this repo's own roadmap and changelog may legitimately accumulate state); `docs/tpm-os/DOCUMENTATION.md` is excluded (targets receive a generic starter instead of this repo's self-describing doc).
  
  Optional pre-commit hook:
  
@@ -611,7 +611,7 @@ process.exit(result.status === null ? 1 : result.status);
 
 1. Apply the new files and edits above (the scratchpad prototype is the tested source).
 2. `./install.sh --self-test`, `claude plugin validate .`, `npm pack --dry-run`.
-3. Documentation-mode updates `docs/tpm_s-kill_bot/DOCUMENTATION.md`; release-mode adds the 0.2.0 CHANGELOG entry; roadmap-mode updates status.
+3. Documentation-mode updates `docs/tpm-os/DOCUMENTATION.md`; release-mode adds the 0.2.0 CHANGELOG entry; roadmap-mode updates status.
 4. User commits; tag `v0.2.0`; push to `main`.
 5. User runs `npm login`; Claude runs `npm publish`.
-6. Post-publish checks: `npx tpm_os --dry-run` from the registry, and a marketplace install from GitHub in a scratch repository.
+6. Post-publish checks: `npx tpm-os --dry-run` from the registry, and a marketplace install from GitHub in a scratch repository.

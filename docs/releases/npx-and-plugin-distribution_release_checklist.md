@@ -1,10 +1,10 @@
 ---
 type: release_checklist
 feature: npx-and-plugin-distribution
-status: ready
+status: released
 linear_issue: null
 created: 2026-10-18
-updated: 2026-10-19
+updated: 2026-11-17
 ---
 
 # Release Checklist: npx-and-plugin-distribution (v0.2.0, superseded by v0.3.0 after the rename)
@@ -37,6 +37,8 @@ No feature flag: distribution channels are all-or-nothing per version.
 5. Re-run the post-publish checks above against `npx tpm-os@latest`.
 
 Existing installs are unaffected: npx and curl installs are already-written files, and plugin users were always on the `tpm-os` plugin name.
+
+Migration complete, verified 2026-11-17: `origin/main` carries the rename at 092ad48 and `tpm-os@0.3.0` is published on npm. The `tpm_os` package no longer resolves.
 
 ## Rollback
 

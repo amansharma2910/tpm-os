@@ -1,6 +1,6 @@
 {
   "name": "tpm-os",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "One-command installer for the TPM Operating System: a senior technical PM operating system for Claude Code.",
   "bin": {
     "tpm-os": "bin/cli.js"

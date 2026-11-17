@@ -6,6 +6,19 @@ The format follows Keep a Changelog (https://keepachangelog.com/en/1.1.0/). Entr
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-17
+
+### Added
+
+- `/tpm-os:setup` now offers to write the tpm-os instructions into the repository's `CLAUDE.md`, and writes nothing until you approve. No `CLAUDE.md` yet: it creates one from the same template npx installs. One already there: the instructions are appended below your own content, after you see which sections are added and where your instructions conflict with a tpm-os default, with the original backed up to `CLAUDE.md.bak-<date>`. One already carrying the router: nothing happens.
+- `/tpm-os:setup-claude-md`: the same question on its own, for repositories whose `docs/` skeleton is already seeded.
+- Installer flag `--print-claude-md`: prints the `CLAUDE.md` a plugin-installed project should carry (the router plus a `## Plugin component names` section) to stdout and writes nothing. The extra section exists because the SessionStart hook goes silent once a `CLAUDE.md` holds the router, taking its namespacing preamble with it.
+- Self-test check on the printed `CLAUDE.md`: the router marker the hook greps for, the naming section, no unsubstituted tokens, no em dashes.
+
+### Changed
+
+- `plugin/commands/setup-claude-md.md` is the single definition of the CLAUDE.md flow; `plugin/commands/setup.md` reads it rather than restating it, so the two entry points cannot drift.
+
 ## [0.3.0] - 2026-10-19
 
 ### Changed

@@ -2,11 +2,11 @@
 type: implementation_plan
 feature: npx-and-plugin-distribution
 version: 1
-status: in_progress
+status: shipped
 unplanned: false
 linear_issue: null
 created: 2026-10-18
-updated: 2026-10-18
+updated: 2026-11-17
 ---
 
 # Implementation Plan: npx and Claude Code Plugin Distribution (v1)

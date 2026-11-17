@@ -9,15 +9,16 @@ updated: 2026-11-17
 ## Milestones
 
 - v0.2.0: npx and Claude Code plugin distribution (npx-and-plugin-distribution).
-- v0.3.0: project renamed to tpm-os (project-rename).
+- v0.3.0: project renamed to tpm-os (project-rename). Live on GitHub and npm, verified 2026-11-17.
+- v0.4.0: setup commands offer a CLAUDE.md (claude-md-setup). Prepared 2026-11-17, not yet tagged or published.
 
 ## Feature Checklist
 
-- [ ] npx-and-plugin-distribution: Install the suite with `npx tpm-os` or as the `tpm-os` Claude Code plugin (plan: v1, status: in_progress)
+- [x] npx-and-plugin-distribution: Install the suite with `npx tpm-os` or as the `tpm-os` Claude Code plugin (plan: v1, status: shipped)
 
 ## Business Objective Coverage
 
-None yet. Populated from tracking plan verdicts. npx-and-plugin-distribution has no tracking plan.
+None yet. Populated from tracking plan verdicts. Neither npx-and-plugin-distribution nor claude-md-setup has a tracking plan, so neither install volume nor acceptance of the CLAUDE.md offer is measured.
 
 ## Unplanned Work
 
@@ -28,6 +29,6 @@ Items with `unplanned: true` in their frontmatter appear here. project-rename an
 
 ## Next Up
 
-- claude-md-setup: applied and verified locally on 2026-11-17 (installer self-test passes, `claude plugin validate` passes, and the create and merge paths were exercised in scratch repositories). Not yet released. Plugin and npm users receive it only after a version bump, because 0.3.0 is already on origin/main and on npm; release-mode owns that bump and the CHANGELOG entry.
-- npx-and-plugin-distribution: its plan frontmatter still reads `status: in_progress`, but the two external steps it was waiting on are now verifiably done: origin/main carries the renamed repository at 092ad48, and `tpm-os@0.3.0` is published on npm. Status mismatch flagged, not guessed: release-mode should flip the plan to shipped and record the release.
-- project-rename: complete. The GitHub rename and the renamed npm publish, both listed as the user's to run, are confirmed done.
+- claude-md-setup: applied and verified locally on 2026-11-17. Version bumped to 0.4.0 in install.sh, package.json, and .claude-plugin/plugin.json, with the changelog entry and docs/releases/claude-md-setup_release_checklist.md written. Three steps remain, all the user's to run: push `main`, tag `v0.4.0`, and `npm publish`. The line flips to shipped once the post-publish checks in that checklist pass.
+- npx-and-plugin-distribution: shipped. The plan is flipped and its release checklist is marked released, confirmed by origin/main carrying the rename at 092ad48 and `tpm-os@0.3.0` resolving on npm.
+- Measurement gap worth closing before the next release: no tracking plan exists for either shipped feature. metrics-mode would define install and setup events, including how often the CLAUDE.md offer is accepted, declined, or merged.

@@ -30,7 +30,7 @@
 
 set -euo pipefail
 
-TPM_SUITE_VERSION="0.3.0"
+TPM_SUITE_VERSION="0.4.0"
 
 # Globals
 TARGET_ARG=""

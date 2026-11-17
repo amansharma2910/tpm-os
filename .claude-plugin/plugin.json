@@ -1,6 +1,6 @@
 {
   "name": "tpm-os",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Senior technical PM operating system for Claude Code: requirements interviews, ADRs, QA, metrics, fix plans, releases, docs, roadmap, feedback triage, and GTM, recorded as Linear-ready docs.",
   "author": {
     "name": "Aman Sharma",

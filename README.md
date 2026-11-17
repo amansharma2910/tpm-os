@@ -11,7 +11,7 @@ Three ways to install. They deliver the same suite; pick by whether you want the
 | Method | Files land in your repo | Updates | Best for |
 |---|---|---|---|
 | npx | Yes: `CLAUDE.md`, `.claude/`, `docs/` | Re-run the command | Teams that review and version the suite with the code |
-| Claude Code plugin | Only `docs/` (via `/tpm-os:setup`) | `/plugin update` | Individuals, or keeping config out of the repo |
+| Claude Code plugin | `docs/`, plus `CLAUDE.md` if you approve it (via `/tpm-os:setup`) | `/plugin update` | Individuals, or keeping config out of the repo |
 | curl or local clone | Yes, same as npx | Re-run the script | Environments without Node |
 
 ### npx
@@ -35,7 +35,9 @@ In a Claude Code session:
 /plugin install tpm-os@tpm-os
 ```
 
-`tpm-os@tpm-os` reads as plugin `tpm-os` from marketplace `tpm-os`; the repository is its own marketplace. Then restart the session and run `/tpm-os:setup` once per repository to seed the `docs/` skeleton. The plugin delivers the router through a SessionStart hook, because plugins cannot ship a `CLAUDE.md`. Everything is namespaced: commands are `/tpm-os:interview`, `/tpm-os:fix`, and so on; skills and subagents carry the `tpm-os:` prefix.
+`tpm-os@tpm-os` reads as plugin `tpm-os` from marketplace `tpm-os`; the repository is its own marketplace. Then restart the session and run `/tpm-os:setup` once per repository. It seeds the `docs/` skeleton, then asks whether to write the instructions into the repository's `CLAUDE.md` as well, and writes nothing until you approve. Everything is namespaced: commands are `/tpm-os:interview`, `/tpm-os:fix`, and so on; skills and subagents carry the `tpm-os:` prefix.
+
+The `CLAUDE.md` question has three outcomes. No `CLAUDE.md` yet: the file is created from the same template npx installs. One already there: the tpm-os instructions are appended below your own content, after you see which sections are added and where your instructions conflict with a tpm-os default, and the original is backed up to `CLAUDE.md.bak-<date>`. Already carrying the router: nothing happens. Decline and the router keeps arriving through the SessionStart hook instead, rebuilt each session; accept and the hook goes quiet, because the file now holds it. Run `/tpm-os:setup-claude-md` to answer the question later, or in a repository where `docs/` is already seeded.
 
 Scope matters. Installed at user scope (the default), the router is active in every repository you open, and its skills auto-trigger on requests like "build X" or "X is broken". To limit it to one repository, pick project scope in the `/plugin` install dialog, or from a shell inside that repository run `claude plugin install tpm-os@tpm-os --scope project`. Project scope also shares the plugin with collaborators through `.claude/settings.json`.
 
@@ -63,6 +65,7 @@ The project name is derived from the target directory's basename (spaces become 
 | `--dry-run` | Render and verify, report what would change, write nothing |
 | `--docs-only` | Install only the `docs/` skeleton (what `/tpm-os:setup` runs) |
 | `--emit-router` | Print the router rendered for the target (what the plugin hook runs); prints nothing if the target's `CLAUDE.md` already holds it |
+| `--print-claude-md` | Print the `CLAUDE.md` a plugin-installed project should carry: the router plus a note naming the plugin's namespaced components (what the setup commands run); writes nothing |
 | `--self-test` | Maintainer mode: diff the embedded templates against this clone |
 | `-h`, `--help` | Help |
 
@@ -82,7 +85,7 @@ Re-running the installer on an up-to-date project is a no-op (everything reports
 
 ## Uninstall
 
-Plugin: `/plugin uninstall tpm-os@tpm-os`. npx, curl, or clone installs: the install report doubles as the manifest. From the target project:
+Plugin: `/plugin uninstall tpm-os@tpm-os`. That removes the components, but not anything you approved it to write: a `CLAUDE.md` carrying the router (and its `## Plugin component names` section, which then points at components you no longer have) and any `CLAUDE.md.bak-<date>` stay in the repository, so delete or revert them yourself. npx, curl, or clone installs: the install report doubles as the manifest. From the target project:
 
 ```bash
 rm -rf CLAUDE.md .claude/skills .claude/agents .claude/commands
@@ -103,7 +106,7 @@ After installing and restarting the session (plugin users: prefix commands with 
 
 ## Maintainers
 
-`install.sh` is the package for all three install methods. npx runs it through `bin/cli.js`, a thin wrapper that passes arguments, working directory, and exit codes through. The plugin is this repository's root: `.claude-plugin/plugin.json` points at `.claude/skills/`, `.claude/commands/`, the four agent files, and `plugin/commands/setup.md`, and its SessionStart hook runs `install.sh --emit-router`. `.claude-plugin/marketplace.json` lists that one plugin with `source: "."`, so the repository is also its own marketplace. Every installed file lives inside it as a quoted heredoc (delimiter `TPM_FILE`), with `{{PROJECT_NAME}}` and `{{DATE}}` substituted at render time. This repo's own `CLAUDE.md`, `.claude/`, and `docs/` are the live reference install of the same suite.
+`install.sh` is the package for all three install methods. npx runs it through `bin/cli.js`, a thin wrapper that passes arguments, working directory, and exit codes through. The plugin is this repository's root: `.claude-plugin/plugin.json` points at `.claude/skills/`, `.claude/commands/`, the four agent files, and the two `plugin/commands/` files, and its SessionStart hook runs `install.sh --emit-router`. `plugin/commands/setup-claude-md.md` holds the only definition of the CLAUDE.md flow; `setup.md` points at it rather than restating it. `.claude-plugin/marketplace.json` lists that one plugin with `source: "."`, so the repository is also its own marketplace. Every installed file lives inside it as a quoted heredoc (delimiter `TPM_FILE`), with `{{PROJECT_NAME}}` and `{{DATE}}` substituted at render time. This repo's own `CLAUDE.md`, `.claude/`, and `docs/` are the live reference install of the same suite.
 
 The working rule: any edit to `CLAUDE.md`, anything under `.claude/`, or a docs seed must be mirrored into the matching heredoc in `install.sh`, and the drift gate must pass before committing:
 

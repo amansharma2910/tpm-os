@@ -13,7 +13,9 @@
 #   npx tpm-os [options] [target-dir]
 #
 # The same file also backs the tpm-os Claude Code plugin: its SessionStart
-# hook runs --emit-router and its /tpm-os:setup command runs --docs-only.
+# hook runs --emit-router, its /tpm-os:setup command runs --docs-only, and
+# both setup commands run --print-claude-md when the user approves a
+# CLAUDE.md for the project.
 #
 # Maintenance rules (see README.md, Maintainer section):
 #   1. Embedded files use quoted heredocs with the delimiter TPM_FILE.
@@ -42,6 +44,7 @@ DRY_RUN=0
 SELF_TEST=0
 DOCS_ONLY=0
 EMIT_ROUTER=0
+PRINT_CLAUDE_MD=0
 STAGE=""
 MANIFEST=""
 CHECKS_PASSED=0
@@ -80,6 +83,11 @@ Options:
                       target, or nothing if its CLAUDE.md already holds the
                       router (used by the plugin's SessionStart hook); never
                       fails
+  --print-claude-md   print the CLAUDE.md a plugin-installed project should
+                      carry (the router plus a note naming the plugin's
+                      namespaced components) to stdout and exit; used by
+                      /tpm-os:setup and /tpm-os:setup-claude-md, writes
+                      nothing itself
   --self-test         maintainer mode: render with the pinned name and date,
                       then diff against this clone's live files
   -h, --help          show this help
@@ -113,6 +121,7 @@ parse_args() {
       --self-test) SELF_TEST=1; shift ;;
       --docs-only) DOCS_ONLY=1; shift ;;
       --emit-router) EMIT_ROUTER=1; shift ;;
+      --print-claude-md) PRINT_CLAUDE_MD=1; shift ;;
       -h|--help) usage; exit 0 ;;
       -*) die "unknown option: $1 (see --help)" ;;
       *)
@@ -1464,6 +1473,31 @@ self_test() {
     note "self-test: injected router is $router_chars characters (budget 9500)"
   fi
 
+  # What the setup commands offer to write as the project's CLAUDE.md: the
+  # same router plus the plugin naming note. The hook greps for the router
+  # marker to decide whether to stay quiet, so a printed file missing either
+  # half breaks plugin users silently.
+  printed="$( { cat "$STAGE/CLAUDE.md"; emit_plugin_note; } )"
+  for probe in \
+    'Senior Technical PM Operating System' \
+    '## Plugin component names' \
+    '/tpm-os:interview'; do
+    case "$printed" in
+      *"$probe"*) ;;
+      *) printf 'self-test: FAIL: printed CLAUDE.md is missing: %s\n' "$probe" >&2
+         st_fails=$((st_fails + 1)) ;;
+    esac
+  done
+  pc_emdash="$(printf '\342\200\224')"
+  case "$printed" in
+    *'{{'*) printf 'self-test: FAIL: unsubstituted token in printed CLAUDE.md\n' >&2
+            st_fails=$((st_fails + 1)) ;;
+  esac
+  case "$printed" in
+    *"$pc_emdash"*) printf 'self-test: FAIL: em dash in printed CLAUDE.md\n' >&2
+                    st_fails=$((st_fails + 1)) ;;
+  esac
+
   if [ "$st_fails" -gt 0 ]; then
     printf 'self-test summary: FAIL (%d failure(s), %d warning(s))\n' "$st_fails" "$st_warns" >&2
     exit 1
@@ -1507,10 +1541,40 @@ writes state, recommend /tpm-os:setup once.
 TPM_PREAMBLE
 }
 
+# /tpm-os:setup and /tpm-os:setup-claude-md support: print the CLAUDE.md a
+# plugin-installed project should carry, so the router becomes a reviewable
+# file in the repository instead of hook output rebuilt every session. The
+# caller decides where the output lands; this writes nothing.
+# resolve_target_and_name runs with its stdout on stderr so a derived-name
+# note can never land inside the file.
+print_claude_md() {
+  resolve_target_and_name >&2
+  STAGE="$(mktemp -d)"
+  render_claude_md
+  cat "$STAGE/CLAUDE.md"
+  emit_plugin_note
+  exit 0
+}
+
+# Appended to the printed CLAUDE.md, never staged. Once a CLAUDE.md carries
+# the router the SessionStart hook stays silent, so this section has to hold
+# the namespacing that the hook preamble would otherwise supply.
+emit_plugin_note() {
+  cat <<'TPM_PLUGIN_NOTE'
+
+## Plugin component names
+
+This project runs the tpm-os suite as a Claude Code plugin, so every component is namespaced: skills as tpm-os:<skill> (for example tpm-os:interview-mode), subagents as tpm-os:<agent> (for example tpm-os:impact-analyzer), and slash commands as /tpm-os:<command> (for example /tpm-os:interview). Read every bare mode, agent, or command name above as its tpm-os: form.
+TPM_PLUGIN_NOTE
+}
+
 main() {
   parse_args "$@"
   if [ "$EMIT_ROUTER" -eq 1 ]; then
     emit_router
+  fi
+  if [ "$PRINT_CLAUDE_MD" -eq 1 ]; then
+    print_claude_md
   fi
   if [ "$SELF_TEST" -eq 1 ]; then
     self_test

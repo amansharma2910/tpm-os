@@ -7,10 +7,11 @@
 - `.claude/agents/`: four research subagents (repo-surveyor, impact-analyzer, doc-crawler, competitor-researcher).
 - `.claude/commands/`: ten slash command aliases (/interview, /architect, /qa, /metrics, /fix, /release, /document, /roadmap, /triage, /gtm).
 - `docs/`: file-based state. plans/, fixes/, adr/, metrics/, releases/ (with CHANGELOG.md), feedback/ (with feedback_log.md), features/, gtm/, roadmap.md, user_testing_documentation.md, and this file.
-- `install.sh`: self-contained installer that packages this entire suite for any repository, deriving the project name from the target directory. Every installed file is embedded in it; `./install.sh --self-test` verifies the embedded copies match this repo's live files, that the three version fields agree, and that the plugin's injected router fits its budget. `--docs-only` and `--emit-router` serve the plugin.
-- `.claude-plugin/plugin.json`: makes the repository root the `tpm-os` Claude Code plugin. Points at `.claude/skills/`, `.claude/commands/`, the four agent files, and `plugin/commands/setup.md`, and declares the SessionStart hook that runs `install.sh --emit-router`.
+- `install.sh`: self-contained installer that packages this entire suite for any repository, deriving the project name from the target directory. Every installed file is embedded in it; `./install.sh --self-test` verifies the embedded copies match this repo's live files, that the three version fields agree, and that the plugin's injected router fits its budget. `--docs-only`, `--emit-router`, and `--print-claude-md` serve the plugin.
+- `.claude-plugin/plugin.json`: makes the repository root the `tpm-os` Claude Code plugin. Points at `.claude/skills/`, `.claude/commands/`, the four agent files, and both `plugin/commands/` files, and declares the SessionStart hook that runs `install.sh --emit-router`.
 - `.claude-plugin/marketplace.json`: makes the repository its own plugin marketplace (`tpm-os`, one plugin, `source: "."`).
-- `plugin/commands/setup.md`: plugin-only `/tpm-os:setup` command; runs `install.sh --docs-only` to seed `docs/`. Kept outside `.claude/` so install.sh users never receive it.
+- `plugin/commands/setup.md`: plugin-only `/tpm-os:setup` command; runs `install.sh --docs-only` to seed `docs/`, then hands the CLAUDE.md question to the file below.
+- `plugin/commands/setup-claude-md.md`: plugin-only `/tpm-os:setup-claude-md` command, and the only definition of the CLAUDE.md flow (detect, ask, create or merge, verify the router marker). Both files stay outside `.claude/` so install.sh users never receive them.
 - `bin/cli.js` and `package.json`: the `tpm-os` npm package. `npx tpm-os` spawns `bash install.sh` with the caller's arguments, working directory, and stdio, and returns its exit code.
 - `LICENSE`: MIT.
 - `README.md`: install instructions, conflict policy, smoke test, and maintainer rules.
@@ -25,14 +26,14 @@ None at runtime. The suite is a Claude Code configuration (markdown with YAML fr
 - Skill-to-subagent dispatch is one-to-one: architecture-mode uses repo-surveyor, fix-mode uses impact-analyzer, documentation-mode uses doc-crawler, gtm-strategy uses competitor-researcher. The other six skills dispatch no subagents.
 - Each skill writes only its owned files (see CLAUDE.md's ownership matrix). roadmap-mode aggregates by reading the frontmatter of docs/plans/, docs/fixes/, and docs/metrics/.
 - Slash commands are thin invokers; each names one skill.
-- Plugin delivery: plugin.json reuses the same `.claude/` files, and its SessionStart hook calls `install.sh --emit-router`, which renders the CLAUDE.md template for the current repository. documentation-mode stays name-agnostic (it defers to the router's ownership table) because the plugin ships skills unrendered.
+- Plugin delivery: plugin.json reuses the same `.claude/` files, and its SessionStart hook calls `install.sh --emit-router`, which renders the CLAUDE.md template for the current repository. The hook and the setup commands are two routes to one template: `--emit-router` prints it as session context, `--print-claude-md` prints it for the repository to keep, and the hook falls silent once a `CLAUDE.md` holds it. documentation-mode stays name-agnostic (it defers to the router's ownership table) because the plugin ships skills unrendered.
 
 ## Setup and Run Instructions
 
 1. Open this repository in Claude Code.
 2. Restart the session after any change to `.claude/agents/` or `.claude/commands/` (skills hot-reload; agents and commands load at session start).
 3. Make requests in plain language and CLAUDE.md routes them, or invoke a mode directly with its slash command.
-4. To install this suite into another repository: `npx tpm-os`, `./install.sh /path/to/project`, the curl one-liner, or the `tpm-os` plugin (`/plugin marketplace add amansharma2910/tpm-os`, `/plugin install tpm-os@tpm-os`, then `/tpm-os:setup`). See README.md for trade-offs.
+4. To install this suite into another repository: `npx tpm-os`, `./install.sh /path/to/project`, the curl one-liner, or the `tpm-os` plugin (`/plugin marketplace add amansharma2910/tpm-os`, `/plugin install tpm-os@tpm-os`, then `/tpm-os:setup`, which also offers to write the instructions into that repository's `CLAUDE.md`). See README.md for trade-offs.
 5. To test the plugin locally without installing it: `claude --plugin-dir /path/to/this/repo` from a scratch repository (not this one, whose own `.claude/` would load every component twice).
 
 ## Architectural Overview

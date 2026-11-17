@@ -11,7 +11,7 @@
   "license": "MIT",
   "keywords": ["product-management", "tpm", "planning", "adr", "roadmap", "qa"],
   "skills": "./.claude/skills/",
-  "commands": ["./.claude/commands/", "./plugin/commands/setup.md"],
+  "commands": ["./.claude/commands/", "./plugin/commands/setup.md", "./plugin/commands/setup-claude-md.md"],
   "agents": [
     "./.claude/agents/repo-surveyor.md",
     "./.claude/agents/impact-analyzer.md",

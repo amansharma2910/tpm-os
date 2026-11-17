@@ -1,7 +1,7 @@
 ---
 type: roadmap
 created: 2026-09-02
-updated: 2026-10-19
+updated: 2026-11-17
 ---
 
 # Roadmap
@@ -22,10 +22,12 @@ None yet. Populated from tracking plan verdicts. npx-and-plugin-distribution has
 ## Unplanned Work
 
 - [x] project-rename: Rename the project to tpm-os throughout, replacing tpm_s-kill_bot and tpm_os (plan: none, status: applied)
+- [x] claude-md-setup: /tpm-os:setup offers to write the tpm-os instructions into the repository's CLAUDE.md, and /tpm-os:setup-claude-md does it on its own (plan: none, status: applied)
 
-Items with `unplanned: true` in their frontmatter appear here. project-rename has no plan document, so it carries no frontmatter of its own and is recorded directly on this line.
+Items with `unplanned: true` in their frontmatter appear here. project-rename and claude-md-setup have no plan documents, so they carry no frontmatter of their own and are recorded directly on these lines.
 
 ## Next Up
 
-- project-rename: applied and verified locally. Two external steps remain, both the user's to run: rename the GitHub repository to tpm-os, and publish the renamed npm package, then deprecate tpm_os. See the Rename migration section of docs/releases/npx-and-plugin-distribution_release_checklist.md.
-- npx-and-plugin-distribution: implemented and verified locally; release checklist ready. `tpm_os@0.2.0` reached npm on 2026-10-18 under the old name, so the remaining work is the rename migration above rather than a first publish. Plan status flips to shipped once the renamed package and repository are live and the post-publish checks pass.
+- claude-md-setup: applied and verified locally on 2026-11-17 (installer self-test passes, `claude plugin validate` passes, and the create and merge paths were exercised in scratch repositories). Not yet released. Plugin and npm users receive it only after a version bump, because 0.3.0 is already on origin/main and on npm; release-mode owns that bump and the CHANGELOG entry.
+- npx-and-plugin-distribution: its plan frontmatter still reads `status: in_progress`, but the two external steps it was waiting on are now verifiably done: origin/main carries the renamed repository at 092ad48, and `tpm-os@0.3.0` is published on npm. Status mismatch flagged, not guessed: release-mode should flip the plan to shipped and record the release.
+- project-rename: complete. The GitHub rename and the renamed npm publish, both listed as the user's to run, are confirmed done.
